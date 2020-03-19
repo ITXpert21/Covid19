@@ -1,6 +1,10 @@
 
 
-import {FETCH_INFOBYCOUNTURY, FETCH_INFOBYCOUNTURY_SUCCESSED, FETCH_INFOBYCOUNTURY_FAILED} from  '../action/actionType';
+import {
+    FETCH_INFOBYCOUNTURY, 
+    FETCH_INFOBYCOUNTURY_SUCCESSED, 
+    FETCH_INFOBYCOUNTURY_FAILED, 
+} from  '../action/actionType';
 
 import {put, takeEvery} from 'redux-saga/effects';
 import homeService from '../services/homeService';
@@ -17,6 +21,7 @@ function* fetchInfoByCountry(param){
     }
 }
 
-export function* watchFetchInfoByCountry(){
+export function* root(){
     yield takeEvery(FETCH_INFOBYCOUNTURY, fetchInfoByCountry);
+
 }

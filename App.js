@@ -14,6 +14,7 @@ import AppNavigator from './AppNavigator';
 
 import createSagaMiddleware from 'redux-saga';
 import rootSaga from './src/sagas/rootSaga';
+import * as NavigationService from './src/services/NavigationService'
 
 const sagaMiddleware = createSagaMiddleware();
 
@@ -27,12 +28,14 @@ export default class App extends Component{
     this.state = {
       selectedTab : 'home',
     }
-    console.log("tabs");
   } 
+  componentDidMount(){
+    NavigationService.setNavigator(this.navigator);
+  }
   render(){
     return (
       <Provider store={store}>
-      <AppNavigator />
+        <AppNavigator ref={ nav => {this.navigator = nav}} />
       </Provider>
     );
   

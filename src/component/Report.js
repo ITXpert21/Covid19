@@ -6,10 +6,10 @@ const { screenWidth, screenHeight } = Dimensions.get('window');
 class Report extends Component {
   constructor(props) {
     super(props);
-    // this.state = {
-    //   mCountryCode: "44",
-    //   mCountryName : 'United Kingdom'
-    // };
+    this.state = {
+      mCountryCode: "44",
+      mCountryName : 'United Kingdom'
+    };
   }
  
   render() {
@@ -22,17 +22,17 @@ class Report extends Component {
     );
   }
 }
-// const mapStateToProps = (state) => {
-//   return {
-//       infoByCountry : state.homeReducers
-//   }
-// }
-// const mapDispatchToProps = (dispatch) => {
+const mapStateToProps = (state) => {
+  return {
+      infoByCountry : state.homeReducers
+  }
+}
+const mapDispatchToProps = (dispatch) => {
 
-//   return {
-//       requestFetchInfo: searchParam => dispatch(fetchInfoByCountry(searchParam)),
-//   }
-// }
+  return {
+      requestFetchInfo: searchParam => dispatch(fetchInfoByCountry(searchParam)),
+  }
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -53,4 +53,4 @@ const styles = StyleSheet.create({
   }  
 
 });
-export default connect(mapStateToProps, mapDispatchToProps)(Home);
+export default connect(mapStateToProps, mapDispatchToProps)(Report);

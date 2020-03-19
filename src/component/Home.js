@@ -5,7 +5,8 @@ import CountryPicker from "../../node_modules/rn-country-picker/src/CountryPicke
 import CountryJSON from "../../node_modules/rn-country-picker/src/CountryPicker/countries.json";
 import DeviceInfo from "react-native-device-info";
 import { ListItem} from 'react-native-elements';
-import {fetchInfoByCountry, fetchInfoByCountrySuccess, fetchInfoByCountryFailed} from '../action'
+import {fetchInfoByCountry, fetchInfoByCountrySuccess, fetchInfoByCountryFailed, navigatePage} from '../action'
+import * as NavigationService from '../services/NavigationService'
 
 class Home extends Component {
   constructor(props) {
@@ -40,7 +41,7 @@ class Home extends Component {
     this.props.requestFetchInfo({countryname : this.state.mCountryName});
 
   }
- 
+
   _selectedValue = index => {
     this.setState({ mCountryName: index });
 
@@ -138,7 +139,7 @@ class Home extends Component {
         <View>
           <Text style={styles.selfReportText}>Corona Virus infection?</Text>
         </View>
-        <TouchableOpacity onPress={() => this.props.navigation.navigate('Reportpage')}>
+        <TouchableOpacity onPress={() => { NavigationService.navigate('Report'); }}>
 
         <View style={styles.selfReportBtn}>
 

@@ -11,7 +11,7 @@ const RootStack = createStackNavigator({
       headerShown : false
     }
   },
-  "Reportpage": { 
+  "Report": { 
     screen: Report,
     navigationOptions: {
       headerShown : false

@@ -1,7 +1,10 @@
-import {FETCH_INFOBYCOUNTURY, FETCH_INFOBYCOUNTURY_SUCCESSED, FETCH_INFOBYCOUNTURY_FAILED} from  './actionType';
+import {
+    FETCH_INFOBYCOUNTURY, 
+    FETCH_INFOBYCOUNTURY_SUCCESSED, 
+    FETCH_INFOBYCOUNTURY_FAILED
+} from  './actionType';
 
 export const fetchInfoByCountry = (param) => {
-    console.log("fetchproducts");
     return {
         type : FETCH_INFOBYCOUNTURY,
         param
