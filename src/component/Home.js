@@ -9,6 +9,7 @@ import {fetchInfoByCountry, fetchInfoByCountrySuccess, fetchInfoByCountryFailed,
 import * as NavigationService from '../services/NavigationService'
 
 class Home extends Component {
+
   constructor(props) {
     super(props);
     this.state = {

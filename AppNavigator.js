@@ -3,6 +3,7 @@ import {createAppContainer} from 'react-navigation';
 
 import Tabs from './src/component/Tabs';
 import Report from './src/component/Report';
+import Submit from './src/component/Submit';
 
 const RootStack = createStackNavigator({
   "HomePage": { 
@@ -13,6 +14,12 @@ const RootStack = createStackNavigator({
   },
   "Report": { 
     screen: Report,
+    navigationOptions: {
+      headerShown : false
+    }
+  },
+  "Submit": { 
+    screen: Submit,
     navigationOptions: {
       headerShown : false
     }
