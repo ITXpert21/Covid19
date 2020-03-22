@@ -1,33 +1,49 @@
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
 import { Dimensions, SafeAreaView, StyleSheet, Text, View,Image, TouchableOpacity } from "react-native";
-import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 
-const { screenWidth, screenHeight } = Dimensions.get('window');
+
+const screenWidth = Math.round(Dimensions.get('window').width);
+const screenHeight = Math.round(Dimensions.get('window').height);
+
 import SegmentControl from 'react-native-segment-controller';
-import * as NavigationService from '../services/NavigationService'
 import Icon from 'react-native-vector-icons/Feather';
+import GoogleLocationInput from './GoogleLocationInput';
+import AwesomeAlert from 'react-native-awesome-alerts';
 
-class Report extends Component {
+export default class Report extends Component {
   selectedParams = {
     positive : '',
-    haveSymptomatic : ''
-  }  
+    haveSymptomatic : '',
+    email : '',
+    locationText : '',
+    lat : '',
+    lng : '',
+    newReportId : '',
+}  
 
   constructor(props) {
     super(props);
     this.state = {
-      index: -1,
+      index: 0,
       content: '',
-      indexSymptomatic: -1,
+      indexSymptomatic: 1,
       yesSymptoms : false,
       noSymptoms : false,
-
+      isModalVisible: false,
+      locationText : 'Enter your location',
+      lat : '',
+      lng : '',
+      locationValid : true
     };
     this.handlePress = this.handlePress.bind(this);
     this.handlePressSymptomatic = this.handlePressSymptomatic.bind(this);
 
   }
+
+  toggleModal = () => {
+    this.setState({isModalVisible: true});
+  };
 
   handlePress(index) {
     switch(index){
@@ -43,6 +59,7 @@ class Report extends Component {
       case 3:
         this.selectedParams.positive = 'nottested';
         break;
+
     }
     this.setState({index});
 
@@ -62,6 +79,16 @@ class Report extends Component {
   }
 
   Next = () => {
+    if(this.state.locationText == "Enter your location"){
+      this.setState({locationValid: false});
+
+      return;
+    }  
+    this.selectedParams.locationText = this.state.locationText;
+    this.selectedParams.lat = this.state.lat;
+    this.selectedParams.lng = this.state.lng;
+    this.selectedParams.newReportId = '';
+
     let navParam = this.selectedParams;
     this.props.navigation.navigate(
       'Submit',
@@ -70,9 +97,25 @@ class Report extends Component {
    // NavigationService.navigate('Submit', {this.selectedParams});
   }
 
+  hideInputView = () => {
+    this.setState({isModalVisible: false});
+  }
+
+  handleLocation = (locationText, locationInfo) => {
+    this.setState({isModalVisible: false});
+    this.setState({locationText: locationText});
+    this.setState({lat: locationInfo.lat});
+    this.setState({lng: locationInfo.lng});
+    this.setState({locationValid: true});
+
+
+  } 
+
   render() {
     return (
       <SafeAreaView style={styles.container}>
+        {!this.state.isModalVisible &&
+        <View>
         <View style={styles.headerView}>
             <View style={styles.backBtnView}>
               <TouchableOpacity onPress={() => this.props.navigation.goBack('')}>
@@ -82,58 +125,15 @@ class Report extends Component {
           <View style={styles.headerTextView}>
             <Text style={styles.headerText}>Self Report</Text>
           </View>
-        </View>  
-        <View style={styles.locationView}>
-          <GooglePlacesAutocomplete
-            placeholder='Enter your location'
-            minLength={2} // minimum length of text to search
-            autoFocus={false}
-            returnKeyType={'search'} // Can be left out for default return key https://facebook.github.io/react-native/docs/textinput.html#returnkeytype
-            keyboardAppearance={'light'} // Can be left out for default keyboardAppearance https://facebook.github.io/react-native/docs/textinput.html#keyboardappearance
-            listViewDisplayed='auto'    // true/false/undefined
-            fetchDetails={true}
-            renderDescription={row => row.description} // custom description render
-            onPress={(data, details = null) => { // 'details' is provided when fetchDetails = true
-              console.log(data, details);
-            }}
-  
-            getDefaultValue={() => ''}
-      
-            query={{
-              // available options: https://developers.google.com/places/web-service/autocomplete
-              key: 'AIzaSyB8nm4Avunu0rENuo2tpWgV8jKUKLFbESw',
-              language: 'en', // language of the results
-              types: '(cities)' // default: 'geocode'
-            }}
-      
-            styles={{
-              textInputContainer: {
-                width: '100%',
-                backgroundColor: 'transparent',
-                borderTopWidth: 0,
-                borderBottomWidth: 0,
-              },
-              textInput : {
-                height : 40,
-                marginLeft : 20,
-                marginRight : 20,
-                marginTop : 20
+        </View> 
 
-              },
-              description: {
-                fontWeight: 'bold'
-              },
-              predefinedPlacesDescription: {
-                color: '#1faadb'
-              }
-            }}
-  
-  
-        debounce={200} // debounce the requests in ms. Set to 0 to remove debounce. By default 0ms.
-        //renderLeftButton={()  => <Image source={require('../assets/imgs/positive_btn.png')} />}
-        // renderRightButton={() => <Text>Custom text after the input</Text>}
-        />  
-      </View>
+
+        <TouchableOpacity onPress={this.toggleModal}>
+          <View style={this.state.locationValid ? styles.locationView : styles.locationInvalidView} >
+            <Text style={{color : '#5e5e5e', fontSize : 16, marginLeft : 10}}>{this.state.locationText}</Text>
+          </View>
+        </TouchableOpacity>
+
       <View style={styles.segmentView}>
         <Text style={styles.positiveText}>Have you tested positive for the Corona Virus?</Text>
         <SegmentControl
@@ -161,66 +161,37 @@ class Report extends Component {
         </View> 
       </View>  
 
-      {/* <View style={styles.segmentSymtomaticRootView}>
-        <Text style={styles.positiveText}>Are you having symptomps?</Text>
-        <View style={styles.segmentSymtomaticView}>
-          <SegmentControl
-            values={['Yes', 'No']}
-            selectedIndex={this.state.indexSymptomatic}
-            height={40}
-            onTabPress={this.handlePressSymptomatic}
-            tabStyle={styles.segmentBtn}  
-            tabTextStyl e={{color : '#363636'}}
-            activeTabStyle={{backgroundColor : '#00918A'}}
-          />
-        </View> 
-      </View>  
-      <View style={styles.segmentSymtomaticRootView}>
-        <Text style={styles.positiveText}>Are you having symptomps?</Text>
-        <View style={styles.segmentSymtomaticView}>
-          <SegmentControl
-            values={['Yes', 'No']}
-            selectedIndex={this.state.indexSymptomatic}
-            height={40}
-            onTabPress={this.handlePressSymptomatic}
-            tabStyle={styles.segmentBtn}  
-            tabTextStyl e={{color : '#363636'}}
-            activeTabStyle={{backgroundColor : '#00918A'}}
-          />
-        </View> 
-      </View>  
-      <View style={styles.segmentSymtomaticRootView}>
-        <Text style={styles.positiveText}>Are you having symptomps?</Text>
-        <View style={styles.segmentSymtomaticView}>
-          <SegmentControl
-            values={['Yes', 'No']}
-            selectedIndex={this.state.indexSymptomatic}
-            height={40}
-            onTabPress={this.handlePressSymptomatic}
-            tabStyle={styles.segmentBtn}  
-            tabTextStyl e={{color : '#363636'}}
-            activeTabStyle={{backgroundColor : '#00918A'}}
-          />
-        </View> 
-      </View>   */}
+
       <TouchableOpacity onPress={() => this.Next()}>
         <View style={styles.nextBtn}>
           <Text style={styles.nextText}>Next</Text>
         </View>
       </TouchableOpacity>
+    
+      </View>}
+      
+      {/* {this.state.isModalVisible && 
+        <View style={styles.googleInputView} >
+          <View style={styles.googleInputIconlView}>
+            <Icon name="search"  size={20} color="#00918A" style={styles.icon}/>
+          </View>
+          <View style={styles.googleInputDetailView}>
+            <GoogleLocationInput />
+          </View>  
+          <View style={styles.googleCancellView}>
+              <Text style={styles.cancelText}> close </Text>
+          </View>
+        </View>
+        }          */}
+       {this.state.isModalVisible && 
+        <View style={styles.googleInputView} >
+            <GoogleLocationInput hideGoogleInput={this.hideInputView} selecteLocationInfo={this.handleLocation}/>
+        </View>
+        }   
+       
       </SafeAreaView>
+    
     );
-  }
-}
-const mapStateToProps = (state) => {
-  return {
-      infoByCountry : state.homeReducers
-  }
-}
-const mapDispatchToProps = (dispatch) => {
-
-  return {
-      requestFetchInfo: searchParam => dispatch(fetchInfoByCountry(searchParam)),
   }
 }
 
@@ -256,8 +227,63 @@ const styles = StyleSheet.create({
     justifyContent : 'center'
   },
   locationView : {
-    height : 80,
-    width : '100%'
+    height : 50,
+    width : screenWidth-40,
+    marginLeft : 20,
+    marginBottom : 20,
+    // borderColor : '#5e5e5e',
+    borderRadius : 5,
+    justifyContent : 'center',
+    backgroundColor : 'white'
+
+  },
+  locationInvalidView : {
+    height : 50,
+    width : screenWidth-40,
+    marginLeft : 20,
+    marginBottom : 20,
+    borderColor : 'red',
+    borderWidth : 1,
+    borderRadius : 5,
+    justifyContent : 'center',
+    backgroundColor : 'white'
+
+  },  
+  googleInputView : {
+    flexDirection : 'row',
+    height : screenHeight,
+    width : '95%',
+    margin : 10,
+
+  },  
+  googleInputIconlView : {
+    height : 49,
+    marginTop : 10,
+    width : '10%',
+    justifyContent : 'center',
+    alignItems : 'center',
+    backgroundColor : 'white'
+  },  
+  googleInputDetailView : {
+    height : 50,
+    width : '70%',
+    justifyContent : 'center',
+    alignItems : 'center',
+    backgroundColor : 'white'
+
+  },
+  googleCancellView : {
+    height : 42,
+    marginTop : 10,
+    width : '15%',
+    justifyContent : 'flex-end',
+    alignItems : 'flex-start',
+  },
+  cancelText : {
+    color : '#00918A',
+    fontSize : 16,
+    fontWeight : '500' ,
+    marginTop : 20   
   },
   segmentView : {
     height : 80,
@@ -306,6 +332,5 @@ const styles = StyleSheet.create({
     color : 'white',
     fontSize : 18,
     fontWeight : '600'
-  }
+  },
 });
-export default connect(mapStateToProps, mapDispatchToProps)(Report);

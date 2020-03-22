@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>458247950527-46caisagu97ka58vjfvld9dmgb2g9j17.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.458247950527-46caisagu97ka58vjfvld9dmgb2g9j17</string>
+	<key>API_KEY</key>
+	<string>AIzaSyDlgGSOngLav8STOwe3BZRcMqA5qz-YzFE</string>
+	<key>GCM_SENDER_ID</key>
+	<string>458247950527</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.tracking.Covid19</string>
+	<key>PROJECT_ID</key>
+	<string>coronavirus-app-1fe73</string>
+	<key>STORAGE_BUCKET</key>
+	<string>coronavirus-app-1fe73.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:458247950527:ios:7db666c347d0828c05f60a</string>
+	<key>DATABASE_URL</key>
+	<string>https://coronavirus-app-1fe73.firebaseio.com</string>
+</dict>
+</plist>

@@ -1,29 +1,73 @@
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
 import { Dimensions, SafeAreaView, StyleSheet, Text, View,Image, TextInput, TouchableOpacity } from "react-native";
-import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 
-const { screenWidth, screenHeight } = Dimensions.get('window');
-import SegmentControl from 'react-native-segment-controller';
-import * as NavigationService from '../services/NavigationService'
 import { ScrollView } from 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/Feather';
+import {addReportSubmit} from '../action'
+import Spinner from 'react-native-loading-spinner-overlay'; 
+import * as NavigationService from '../services/NavigationService'
+import AwesomeAlert from 'react-native-awesome-alerts';
 
+const { screenWidth, screenHeight } = Dimensions.get('window');
 
 class Submit extends Component {
   selectedParams = {
     positive : '',
-    haveSymptomatic : ''
+    haveSymptomatic : '',
+    
   }  
 
   constructor(props) {
     super(props);
     this.state = {
-      reports : this.props.navigation.state.params.navParam
+      email : '',
+      reports : this.props.navigation.state.params.navParam,
+      spinner: false,
+      emailValid : true
     };
   }
+  componentDidMount() {
+    // setInterval(() => {
+    //   this.setState({
+    //     spinner: !this.state.spinner
+    //   });
+    // }, 3000);
+  }
+  validate = (text) => {
+    console.log(text);
+    let reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+    if (reg.test(text) === false) {
+      console.log("Email is Not Correct");
+      this.setState({ email: text });
+      this.setState({ emailValid: false })
+      return false;
+    }
+    else {
+      this.setState({ email: text })
+      this.setState({ emailValid: true })
+    }
+  }  
+  submit = () => {
+    if(!this.state.email){
+      this.setState({ emailValid: false })
+      return;
+    }
 
+    let submitParam = this.props.navigation.state.params.navParam;
+    submitParam.email = this.state.email;
 
+    this.setState({reports: submitParam});
+
+    this.props.requestSubmitReport({addParam : this.state.reports});
+
+    this.setState({spinner: true});
+
+    setTimeout(() => {
+      this.setState({spinner: false});
+      NavigationService.navigate('HomePage');
+    }, 2000);
+  }
 
   render() {
     return (
@@ -38,15 +82,19 @@ class Submit extends Component {
             <Text style={styles.headerText}>Self Report</Text>
           </View>
         </View>  
-
+        <Spinner
+          visible={this.state.spinner}
+          textContent={'Submitting...'}
+          textStyle={styles.spinnerTextStyle}
+        />
         <ScrollView>
-        <View style={styles.textinputview}> 
+        <View style={this.state.emailValid ? styles.textinputview : styles.textinputInvalidView}> 
           <Icon name="mail"  size={20} color="#00918A" style={styles.icon}/>
           <TextInput style={styles.textinput} placeholder="Enter your email"
-              onChangeText={ email=> this.setState({email})}  
+              onChangeText={ (text) => this.validate(text)}  
           />
         </View>
-        <TouchableOpacity onPress={() => this.Next()}>
+        <TouchableOpacity onPress={() => this.submit()}>
           <View style={styles.submitBtn}>
             <Text style={styles.submitText}>Submit Self Report</Text>
           </View>
@@ -64,13 +112,13 @@ class Submit extends Component {
 }
 const mapStateToProps = (state) => {
   return {
-      infoByCountry : state.homeReducers
+      reports : state.reportReducers
   }
 }
 const mapDispatchToProps = (dispatch) => {
 
   return {
-      requestFetchInfo: searchParam => dispatch(fetchInfoByCountry(searchParam)),
+      requestSubmitReport: addParam => dispatch(addReportSubmit(addParam)),
   }
 }
 
@@ -116,6 +164,19 @@ const styles = StyleSheet.create({
     borderWidth : 1,
     backgroundColor : 'white'
   },
+
+  textinputInvalidView : {
+    flexDirection: 'row',
+    alignItems : 'center',
+    width : screenWidth,
+    height: 50,
+    margin : 20,
+    borderRadius:10,
+    borderWidth : 1,
+    borderColor : 'red',
+    borderWidth : 1,
+    backgroundColor : 'white'
+  },
   textinput : {
     width : 250,
     height: 60,
@@ -156,6 +217,9 @@ const styles = StyleSheet.create({
     fontSize : 14,
     fontWeight : '400',
     lineHeight: 30,
-  }           
+  },
+  spinnerTextStyle: {
+    color: '#FFF'
+  },           
 });
 export default connect(mapStateToProps, mapDispatchToProps)(Submit);
