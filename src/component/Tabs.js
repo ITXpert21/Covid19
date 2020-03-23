@@ -3,6 +3,8 @@ import React, {Component} from 'react';
 import TabNavigator from 'react-native-tab-navigator';
 import Map from './Map';
 import Home from './Home';
+import Faq from './Faq';
+
 import tabStyle from './styles/tabStyle'
 import {Image} from 'react-native';
 
@@ -37,6 +39,17 @@ export default class Tabs extends Component{
         onPress={() => this.setState({ selectedTab: 'map' })}>
         <Map />
       </TabNavigator.Item>
+      <TabNavigator.Item
+        selected={this.state.selectedTab === 'faq'}
+        title="FAQ"
+        titleStyle={tabStyle.title}
+        selectedTitleStyle={tabStyle.selectedStyle}
+        renderIcon={() => <Image source={require('../assets/icons/faqtab_unselected.png')} />}
+        renderSelectedIcon={() => <Image source={require('../assets/icons/faqtab_selected.png')} />}
+        // renderBadge={() => <CustomBadgeView />}
+        onPress={() => this.setState({ selectedTab: 'faq' })}>
+        <Faq />
+      </TabNavigator.Item>      
     </TabNavigator>
 
     );
