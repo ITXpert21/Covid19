@@ -4,6 +4,7 @@ import TabNavigator from 'react-native-tab-navigator';
 import Map from './Map';
 import Home from './Home';
 import Faq from './Faq';
+import Feed from './Feed';
 
 import tabStyle from './styles/tabStyle'
 import {Image} from 'react-native';
@@ -49,7 +50,18 @@ export default class Tabs extends Component{
         // renderBadge={() => <CustomBadgeView />}
         onPress={() => this.setState({ selectedTab: 'faq' })}>
         <Faq />
-      </TabNavigator.Item>      
+      </TabNavigator.Item>    
+      <TabNavigator.Item
+        selected={this.state.selectedTab === 'feed'}
+        title="Feed"
+        titleStyle={tabStyle.title}
+        selectedTitleStyle={tabStyle.selectedStyle}
+        renderIcon={() => <Image source={require('../assets/icons/feedtab_unselected.png')} />}
+        renderSelectedIcon={() => <Image source={require('../assets/icons/feedtab_selected.png')} />}
+        // renderBadge={() => <CustomBadgeView />}
+        onPress={() => this.setState({ selectedTab: 'feed' })}>
+        <Feed />
+      </TabNavigator.Item>          
     </TabNavigator>
 
     );

@@ -19,7 +19,8 @@ export default class GoogleLocationInput extends Component {
   } 
 
   handleLocation = (data, details) => {
-    this.props.selecteLocationInfo( data.description, details.geometry.location);
+    console.log('data', data.terms);
+    this.props.selecteLocationInfo( data, details.geometry.location);
   } 
   render() {
     return (

@@ -8,7 +8,7 @@ const homeReducers = (state = {loaded: false}, action) => {
         case FETCH_INFOBYCOUNTURY_SUCCESSED:
             return {...state, receiveInfo : action.receiveInfo, loaded: true}; 
         case FETCH_INFOBYCOUNTURY_FAILED:
-            return {...state, loaded: true}; 
+            return {...state, loaded: false}; 
         case FETCH_INFOBYCOUNTURY:
             return {...state, loaded: false};            
         default : 

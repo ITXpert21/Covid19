@@ -6,4 +6,8 @@ export default class HomeService {
         const infoByCountry = await Http.get(`https://covid19.mathdro.id/api/countries/${countryname}`);
         return infoByCountry;
     }
+    static async getInfoFromFirebase(countryname) {
+        const infoByCountry = await Http.getFromFirebase(countryname);
+        return infoByCountry;
+    }    
 }

@@ -13,13 +13,14 @@ import AwesomeAlert from 'react-native-awesome-alerts';
 
 export default class Report extends Component {
   selectedParams = {
-    positive : '',
-    haveSymptomatic : '',
+    positive : 'yes',
+    haveSymptomatic : 'no',
     email : '',
     locationText : '',
     lat : '',
     lng : '',
     newReportId : '',
+    country : ''
 }  
 
   constructor(props) {
@@ -88,6 +89,7 @@ export default class Report extends Component {
     this.selectedParams.lat = this.state.lat;
     this.selectedParams.lng = this.state.lng;
     this.selectedParams.newReportId = '';
+    this.selectedParams.country = this.state.country;
 
     let navParam = this.selectedParams;
     this.props.navigation.navigate(
@@ -101,9 +103,12 @@ export default class Report extends Component {
     this.setState({isModalVisible: false});
   }
 
-  handleLocation = (locationText, locationInfo) => {
+  handleLocation = (data, locationInfo) => {
+
+    let dataLength = data.terms.length;
     this.setState({isModalVisible: false});
-    this.setState({locationText: locationText});
+    this.setState({country: data.terms[dataLength-1].value});
+    this.setState({locationText: data.description});
     this.setState({lat: locationInfo.lat});
     this.setState({lng: locationInfo.lng});
     this.setState({locationValid: true});

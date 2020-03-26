@@ -1,57 +1,105 @@
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
-import { Platform, SafeAreaView, StyleSheet, Text, View,Image, TouchableOpacity } from "react-native";
+import { SafeAreaView, StyleSheet, Share, Text, View,Image, TouchableOpacity } from "react-native";
 import CountryPicker from "../../node_modules/rn-country-picker/src/CountryPicker/CountryPicker";
-import CountryJSON from "../../node_modules/rn-country-picker/src/CountryPicker/countries.json";
-import DeviceInfo from "react-native-device-info";
 import { ListItem} from 'react-native-elements';
-import {fetchInfoByCountry, fetchInfoByCountrySuccess, fetchInfoByCountryFailed, navigatePage} from '../action'
+import {fetchInfoByCountry, fetchInfoFromFirebase} from '../action'
 import * as NavigationService from '../services/NavigationService'
+import {getCode, getName} from 'country-list';
+import { database } from "../config/firebase";
+import Icon from 'react-native-vector-icons/Feather';
+import Spinner from 'react-native-loading-spinner-overlay'; 
+
+var symptomatic_var = 0;
+var asymptomatic_var = 0;
+var positive_var = 0;
 
 class Home extends Component {
+  spinner = false;
 
   constructor(props) {
     super(props);
     this.state = {
       mCountryCode: "44",
-      mCountryName : 'United Kingdom'
-    };
-    // let userLocaleCountryCode = "";
-    // userLocaleCountryCode = DeviceInfo.getDeviceCountry();
-    // try {
-    //   if (userLocaleCountryCode) {
-    //     const newData = CountryJSON.filter(function(item) {
-    //       const itemData = item.name.common.toUpperCase();
-    //       const textData = userLocaleCountryCode.toUpperCase();
-    //       return itemData.startsWith(textData);
-    //     });
-    //     console.log("newData1111111111", newData.length);
+      mCountryName : 'United Kingdom',
+      symptomatic : 0,
+      asymptomatic : 0,
+      positive : 0,
+  }    
 
-    //     if (newData.length > 0) {
-
-    //       this.state.mCountryCode = newData[0].callingCode;
-    //     } else {
-    //       this.setState({ mCountryCode: "44" });
-    //     }
-    //   } else {
-    //     this.setState({ mCountryCode: "44" });
-    //   }
-    // } catch (e) {
-    //   console.error(e.message);
-    // }
     this.props.requestFetchInfo({countryname : this.state.mCountryName});
-
   }
 
-  _selectedValue = index => {
-    this.setState({ mCountryName: index });
+  componentDidMount() {
+   // this.spinner = true;
+    this.getInfoFromFirebase(this.state.mCountryName);
+  }
 
+  getInfoFromFirebase(currentCountry){
+    symptomatic_var = 0;
+    asymptomatic_var = 0;
+    positive_var = 0;
+    console.log('2222', currentCountry);
+    database.ref('/reports').orderByValue().once("value", reports=>{
+      reports.forEach(function(report){
+        if(report.val().country == 'UK')
+          report.val().country = 'United Kingdom';
+
+        if(report.val().country == currentCountry){  
+          
+
+          if(report.val().haveSymptomatic == 'yes')
+            symptomatic_var = symptomatic_var+ 1;
+
+          if(report.val().haveSymptomatic == 'no')
+            asymptomatic_var = asymptomatic_var+ 1;
+
+          if(report.val().positive == 'yes')
+            positive_var = positive_var+ 1;
+        }  
+
+      })
+      this.setState({symptomatic : symptomatic_var});
+      this.setState({asymptomatic : asymptomatic_var});
+      this.setState({positive : positive_var});
+    });
+  }
+  _selectedValue = index => {
+   // this.spinner = true;
+
+    this.setState({ mCountryName: index });
+    console.log('selected country', index);
+
+    this.getInfoFromFirebase(index);
      this.props.requestFetchInfo({countryname : index});
+     console.log("selected countru", this.props.infoByCountry);
 
   };
- 
+
+  onShare = async () => {
+    try {
+      const result = await Share.share({
+        message : 'That is for testing. We will have to change this url.',
+        url : 'https://app.developer.here.com/coronavirus/'
+      });
+
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          // shared with activity type of result.activityType
+        } else {
+          // shared
+        }
+      } else if (result.action === Share.dismissedAction) {
+        // dismissed
+      }
+    } catch (error) {
+      alert(error.message);
+    }
+  }; 
  
   render() {
+    // if(this.props.infoByCountry.loaded)
+    //   this.spinner = false;
     return (
       <SafeAreaView style={styles.container}>
       <View style={styles.countryView}>
@@ -73,36 +121,49 @@ class Home extends Component {
           countryCode={this.state.mCountryName}
           selectedValue={this._selectedValue}
         />
+      <TouchableOpacity style={styles.shareView} onPress={this.onShare}>
+          <Icon name="share-2"  size={20} style={{color : "#00918A"}}/>
+          <Text style={styles.shareText}>Share</Text>
+      </TouchableOpacity>      
+
       </View>
+      <Spinner
+          visible={this.spinner}
+          textContent={''}
+          textStyle={styles.spinnerTextStyle}
+        />
+  
       <View style={styles.infoView}>
         <View style={styles.infectedView}>
           <Image source={require('../assets/imgs/virus.png')} style={styles.infoImg}></Image>          
           <Text style={styles.infotitle}>Infected</Text>
           {this.props.infoByCountry.loaded && 
-            <Text style={styles.infoValue}>{this.props.infoByCountry.receiveInfo.confirmed.value}</Text>
+          <Text style={styles.infoValue}>{this.props.infoByCountry.receiveInfo.confirmed.value}</Text>
           }
+
         </View>
         <View style={styles.recoveredView}>
           <Image source={require('../assets/imgs/recovered.png')} style={styles.infoImg}></Image>          
           <Text style={styles.infotitle}>Recoverd</Text>
-          {this.props.infoByCountry.loaded &&            
-            <Text style={styles.infoValue}>{this.props.infoByCountry.receiveInfo.recovered.value}</Text>
+          {this.props.infoByCountry.loaded && 
+          <Text style={styles.infoValue}>{this.props.infoByCountry.receiveInfo.recovered.value}</Text>
           }
         </View>  
         <View style={styles.deadView}>
           <Image source={require('../assets/imgs/dead.png')} style={styles.infoImg}></Image>          
           <Text style={styles.infotitle}>Dead</Text>
-          {this.props.infoByCountry.loaded &&            
-            <Text style={styles.infoValue}>{this.props.infoByCountry.receiveInfo.deaths.value}</Text>
-          }  
+          {this.props.infoByCountry.loaded && 
+          <Text style={styles.infoValue}>{this.props.infoByCountry.receiveInfo.deaths.value}</Text>
+          }
         </View>               
       </View>
+      
       <ListItem
         title={
           <Text style={styles.listTitle}>Symptomatic</Text>
         }
         subtitle={
-          <Text style={styles.listSubtitle}>322</Text>
+        <Text style={styles.listSubtitle}>{this.state.symptomatic.toString()}</Text>
 
         }
         containerStyle={styles.listitem}
@@ -115,7 +176,7 @@ class Home extends Component {
           <Text style={styles.listTitle}>Self Reported Positive</Text>
         }
         subtitle={
-          <Text style={styles.listSubtitle}>322</Text>
+          <Text style={styles.listSubtitle}>{this.state.positive.toString()}</Text>
 
         }
         containerStyle={styles.listitem}
@@ -128,7 +189,7 @@ class Home extends Component {
           <Text style={styles.listTitle}>Asymptomatic</Text>
         }
         subtitle={
-          <Text style={styles.listSubtitle}>322</Text>
+          <Text style={styles.listSubtitle}>{this.state.asymptomatic.toString()}</Text>
 
         }
         containerStyle={styles.listitem}
@@ -162,6 +223,7 @@ const mapDispatchToProps = (dispatch) => {
 
   return {
       requestFetchInfo: searchParam => dispatch(fetchInfoByCountry(searchParam)),
+
   }
 }
 
@@ -171,7 +233,26 @@ const styles = StyleSheet.create({
     backgroundColor: "#ebe8e8",
   },
   countryView : {
+    flexDirection : 'row',
     margin : 30
+  },
+  shareView : {
+    flexDirection : 'row',
+    width : '35%',
+    height: 40,
+    borderColor: "#666666",
+    backgroundColor: "white",
+    borderRadius : 10,
+    marginLeft : 20,
+    alignItems: "center",
+    justifyContent : 'center'
+
+  },
+  shareText : {
+    color : '#00918A',
+    fontSize : 16,
+    fontWeight : '500',
+    marginLeft : 10
   },
   pickerTitleStyle: {
     justifyContent: "center",
