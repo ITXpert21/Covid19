@@ -1,24 +1,18 @@
 
 import React, {Component} from 'react';
-import { StyleSheet, View, SafeAreaView, Text, Dimensions, Image, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, SafeAreaView, Text, Dimensions, Image, TouchableOpacity, TouchableHighlight } from 'react-native';
 import MapView, { Marker,  PROVIDER_GOOGLE } from 'react-native-maps';
 import GetLocation from 'react-native-get-location';
 import * as RNLocalize from "react-native-localize";
 import {countries} from 'country-data';
 import {connect} from 'react-redux';
 import {fetchConfirmedInfoByCountry, getCurrentLocation} from '../action'
-import CountryPicker from "../../node_modules/rn-country-picker/src/CountryPicker/CountryPicker";
-import Geocoder from 'react-native-geocoding';
-
+import { ToggleButton } from 'react-native-paper';
 const { width, height } = Dimensions.get('window');
 
 const ASPECT_RATIO = width / height;
-const LATITUDE = 37.78825;
-const LONGITUDE = -122.4324;
 const LATITUDE_DELTA = 0.0922;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
-const SPACE = 0.01;
-const myApiKey = 'AIzaSyB8nm4Avunu0rENuo2tpWgV8jKUKLFbESw';
 
  class Map extends Component{
   selectedCountry = countries[RNLocalize.getCountry()].name;
@@ -26,7 +20,9 @@ const myApiKey = 'AIzaSyB8nm4Avunu0rENuo2tpWgV8jKUKLFbESw';
   constructor(props) {
     super(props);
     this.state = {
-      marker1: true,
+      seletedConfirmed: false,
+      seletedDeaths: false,
+
       marker2: false,
       confirmedText : 'confirmed : 2400',
       recoveredText : 'recoverd : 50',
@@ -44,119 +40,187 @@ const myApiKey = 'AIzaSyB8nm4Avunu0rENuo2tpWgV8jKUKLFbESw';
       this.setState({currentLat : location.latitude});
       this.setState({currentLng : location.longitude});
       
-      //this.getInfoByCountry(this.state.currentCountry);
     })
     .catch(error => {
         const { code, message } = error;
         console.log('error');
         console.warn(code, message);
     })  
-    //this.onRegionChangeComplete = this.onRegionChangeComplete.bind(this);
-    this.props.requestFetchConfirmedInfo({countryname : this.state.currentCountry});
   }
 
   componentDidMount(){
-
-  }
-
-  
-  onRegionChangeComplete(region) {
-
-
-    if(this.selectedCountry != this.state.currentCountry){
-      this.setState({currentCountry : this.selectedCountry});
-      this.setState({currentLat : region.latitude});
-      this.setState({currentLng : region.longitude});
-      this.props.requestFetchConfirmedInfo({countryname : this.selectedCountry});
-      console.log("selected another country", this.state.currentCountry);
-      return;
-      //
-    }
-    fetch('https://maps.googleapis.com/maps/api/geocode/json?address=' + region.latitude + ',' + region.longitude + '&key=' + myApiKey)
-    .then((response) => response.json())
-    .then((responseJson) => {
-
-      for(let i=0; i<responseJson.results[0].address_components.length; i++){
-        if(responseJson.results[0].address_components[i].types[0] == 'country'){
-          this.selectedCountry = responseJson.results[0].address_components[i].long_name;
-
-          break;
-        }
-      }
-
-
-    })
-  }
-
-  _selectedValue = index => {
-    this.setState({ currentCountry: index });
     this.props.requestFetchConfirmedInfo({countryname : this.state.currentCountry});
 
-     Geocoder.init(myApiKey);
+  }
 
-     Geocoder.from(index)
-      .then(json => {
-          var location = json.results[0].geometry.location;
-          this.setState({currentLat : location.lat});
-          this.setState({currentLng : location.lng});
-          this.props.requestFetchConfirmedInfo({countryname : this.state.currentCountry});
+  renderAllMarker(info){
+    if(info.confirmed >  20000 && info.confirmed > 0){
+      if(info.deaths >  2000 && info.deaths > 0)
+        return <View style={styles.confirmMarkerMediumView}><View style={styles.deathsMarkerMediumView1}></View></View>;
+      if(info.deaths >  5000 && info.deaths > 0)
+        return <View style={styles.confirmMarkerMediumView}><View style={styles.deathsMarkerLargeView1}></View></View>;      
+      if(info.deaths >  1000 && info.deaths > 0)
+        return <View style={styles.confirmMarkerMediumView}><View style={styles.deathsMarkerSmallView1}></View></View>;      
+      if(info.deaths <= 1000 && info.deaths > 0)
+        return <View style={styles.confirmMarkerMediumView}><View style={styles.deathsMarkerView1}></View></View>;  
+    }
+    if(info.confirmed >  50000 && info.confirmed > 0){
+      if(info.deaths >  2000 && info.deaths > 0)
+        return <View style={styles.confirmMarkerLargeView}><View style={styles.deathsMarkerMediumView1}></View></View>;
+      if(info.deaths >  5000 && info.deaths > 0)
+        return <View style={styles.confirmMarkerLargeView}><View style={styles.deathsMarkerLargeView1}></View></View>;      
+      if(info.deaths >  1000 && info.deaths > 0)
+        return <View style={styles.confirmMarkerLargeView}><View style={styles.deathsMarkerSmallView1}></View></View>;      
+      if(info.deaths <= 1000 && info.deaths > 0)
+        return <View style={styles.confirmMarkerLargeView}><View style={styles.deathsMarkerView1}></View></View>;  
+    }    
+    if(info.confirmed >  10000 && info.confirmed > 0){
+      if(info.deaths >  2000 && info.deaths > 0)
+        return <View style={styles.confirmMarkerSmallView}><View style={styles.deathsMarkerMediumView1}></View></View>;
+      if(info.deaths >  5000 && info.deaths > 0)
+        return <View style={styles.confirmMarkerSmallView}><View style={styles.deathsMarkerLargeView1}></View></View>;      
+      if(info.deaths >  1000 && info.deaths > 0)
+        return <View style={styles.confirmMarkerSmallView}><View style={styles.deathsMarkerSmallView1}></View></View>;      
+      if(info.deaths <= 1000 && info.deaths > 0)
+        return <View style={styles.confirmMarkerSmallView}><View style={styles.deathsMarkerView1}></View></View>;  
+    }
+    if(info.confirmed <= 10000 && info.confirmed > 0){
+      if(info.deaths >  2000 && info.deaths > 0)
+        return <View style={styles.confirmMarkerView}><View style={styles.deathsMarkerMediumView1}></View></View>;
+      if(info.deaths >  5000 && info.deaths > 0)
+        return <View style={styles.confirmMarkerView}><View style={styles.deathsMarkerLargeView1}></View></View>;      
+      if(info.deaths >  1000 && info.deaths > 0)
+        return <View style={styles.confirmMarkerView}><View style={styles.deathsMarkerSmallView1}></View></View>;      
+      if(info.deaths <= 1000 && info.deaths > 0)
+        return <View style={styles.confirmMarkerView}><View style={styles.deathsMarkerView1}></View></View>;  
+    } 
+  }
 
-      })
-      .catch(error => console.warn(error));
-  };
-  // async makeDataForMarker(results){
-  //   Geocoder.init(myApiKey);
-  //   const markersData = [];
+  renderConfirmMarker(info){
+    if(this.state.seletedDeaths && info.deaths > 0){
+      if(info.confirmed >  20000){
+        if(info.deaths >  2000)
+          return <View style={styles.confirmMarkerMediumView}><View style={styles.deathsMarkerMediumView1}></View></View>;
+        if(info.deaths >  5000)
+          return <View style={styles.confirmMarkerMediumView}><View style={styles.deathsMarkerLargeView1}></View></View>;      
+        if(info.deaths >  1000)
+          return <View style={styles.confirmMarkerMediumView}><View style={styles.deathsMarkerSmallView1}></View></View>;      
+        else
+          return <View style={styles.confirmMarkerMediumView}><View style={styles.deathsMarkerView1}></View></View>;  
+      }
+      if(info.confirmed >  50000){
+        if(info.deaths >  2000)
+          return <View style={styles.confirmMarkerLargeView}><View style={styles.deathsMarkerMediumView1}></View></View>;
+        if(info.deaths >  5000)
+          return <View style={styles.confirmMarkerLargeView}><View style={styles.deathsMarkerLargeView1}></View></View>;      
+        if(info.deaths >  1000)
+          return <View style={styles.confirmMarkerLargeView}><View style={styles.deathsMarkerSmallView1}></View></View>;      
+        else
+          return <View style={styles.confirmMarkerLargeView}><View style={styles.deathsMarkerView1}></View></View>;  
+      }    
+      if(info.confirmed >  10000){
+        if(info.deaths >  2000)
+          return <View style={styles.confirmMarkerSmallView}><View style={styles.deathsMarkerMediumView1}></View></View>;
+        if(info.deaths >  5000)
+          return <View style={styles.confirmMarkerSmallView}><View style={styles.deathsMarkerLargeView1}></View></View>;      
+        if(info.deaths >  1000)
+          return <View style={styles.confirmMarkerSmallView}><View style={styles.deathsMarkerSmallView1}></View></View>;      
+        else
+          return <View style={styles.confirmMarkerSmallView}><View style={styles.deathsMarkerView1}></View></View>;  
+      }else{
+        if(info.deaths >  2000)
+          return <View style={styles.confirmMarkerView}><View style={styles.deathsMarkerMediumView1}></View></View>;
+        if(info.deaths >  5000)
+          return <View style={styles.confirmMarkerView}><View style={styles.deathsMarkerLargeView1}></View></View>;      
+        if(info.deaths >  1000)
+          return <View style={styles.confirmMarkerView}><View style={styles.deathsMarkerSmallView1}></View></View>;      
+        else
+          return <View style={styles.confirmMarkerView}><View style={styles.deathsMarkerView1}></View></View>;  
+      } 
 
-  //   results.map( data => {
-  //     Geocoder.from(data.keyId)
-  //     .then(json => {
-  //         var location = json.results[0].geometry.location;
-  //         data.lat = location.lat;
-  //         data.lng = location.lng;
-  //         this.state.currentMarkers.push(data)    
-  //     })
-  //     .catch(error => console.warn(error));      
-  //   });
+    }else{
+      if(info.confirmed >  20000)
+        return <View style={styles.confirmMarkerMediumView}></View>;
+      if(info.confirmed >  50000)
+        return <View style={styles.confirmMarkerLargeView}></View>;      
+      if(info.confirmed >  10000)
+        return <View style={styles.confirmMarkerSmallView}></View>;      
+      else
+        return <View style={styles.confirmMarkerView}></View>; 
+    }       
+  }
 
-  // }
+  renderDeathsMarker(info){
+    if(this.state.seletedConfirmed && info.confirmed > 0){
+      if(info.confirmed >  20000){
+        if(info.deaths >  2000)
+          return <View style={styles.confirmMarkerMediumView}><View style={styles.deathsMarkerMediumView1}></View></View>;
+        if(info.deaths >  5000)
+          return <View style={styles.confirmMarkerMediumView}><View style={styles.deathsMarkerLargeView1}></View></View>;      
+        if(info.deaths >  1000)
+          return <View style={styles.confirmMarkerMediumView}><View style={styles.deathsMarkerSmallView1}></View></View>;      
+        else
+          return <View style={styles.confirmMarkerMediumView}><View style={styles.deathsMarkerView1}></View></View>;  
+      }
+      if(info.confirmed >  50000){
+        if(info.deaths >  2000)
+          return <View style={styles.confirmMarkerLargeView}><View style={styles.deathsMarkerMediumView1}></View></View>;
+        if(info.deaths >  5000)
+          return <View style={styles.confirmMarkerLargeView}><View style={styles.deathsMarkerLargeView1}></View></View>;      
+        if(info.deaths >  1000)
+          return <View style={styles.confirmMarkerLargeView}><View style={styles.deathsMarkerSmallView1}></View></View>;      
+        else
+          return <View style={styles.confirmMarkerLargeView}><View style={styles.deathsMarkerView1}></View></View>;  
+      }    
+      if(info.confirmed >  10000){
+        if(info.deaths >  2000)
+          return <View style={styles.confirmMarkerSmallView}><View style={styles.deathsMarkerMediumView1}></View></View>;
+        if(info.deaths >  5000)
+          return <View style={styles.confirmMarkerSmallView}><View style={styles.deathsMarkerLargeView1}></View></View>;      
+        if(info.deaths >  1000)
+          return <View style={styles.confirmMarkerSmallView}><View style={styles.deathsMarkerSmallView1}></View></View>;      
+        else
+          return <View style={styles.confirmMarkerSmallView}><View style={styles.deathsMarkerView1}></View></View>;  
+      }else{
+        if(info.deaths >  2000)
+          return <View style={styles.confirmMarkerView}><View style={styles.deathsMarkerMediumView1}></View></View>;
+        if(info.deaths >  5000)
+          return <View style={styles.confirmMarkerView}><View style={styles.deathsMarkerLargeView1}></View></View>;      
+        if(info.deaths >  1000)
+          return <View style={styles.confirmMarkerView}><View style={styles.deathsMarkerSmallView1}></View></View>;      
+        else
+          return <View style={styles.confirmMarkerView}><View style={styles.deathsMarkerView1}></View></View>;  
+      } 
+
+    }else{
+      if(info.deaths >  2000)
+        return <View style={styles.deathsMarkerMediumView1}></View>;
+      if(info.deaths >  5000)
+        return <View style={styles.deathsMarkerLargeView1}></View>;      
+      if(info.deaths >  1000)
+        return <View style={styles.deathsMarkerSmallView1}></View>;      
+      else
+        return <View style={styles.deathsMarkerView1}></View>; 
+    }     
+  }
+
 
   render(){
-    // if(this.props.infoByCountry.loaded)
-    //   this.makeDataForMarker(this.props.infoByCountry.receiveInfo.data.covid19Stats);
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.headerView}>
           <Text style={styles.headerText}>Map</Text>  
-          {/* <CountryPicker
-            disable={false}
-            animationType={'slide'}
-            containerStyle={styles.pickerStyle}
-            pickerTitleStyle={styles.pickerTitleStyle}
-            dropDownImage={require("../assets/imgs/res/ic_drop_down.png")}
-            selectedCountryTextStyle={styles.selectedCountryTextStyle}
-            countryNameTextStyle={styles.countryNameTextStyle}
-            pickerTitle={"Country Picker"}
-            searchBarPlaceHolder={"Search......"}
-            hideCountryFlag={false}
-            hideCountryCode={false}
-            searchBarStyle={styles.searchBarStyle}
-            backButtonImage={require("../assets/imgs/res/ic_back_black.png")}
-            searchButtonImage={require("../assets/imgs/res/ic_search.png")}
-            countryCode={this.state.currentCountry}
-            selectedValue={this._selectedValue}
-          />       */}
-
           <View style={styles.info_WHO}>
-            <TouchableOpacity>
-              <View style={styles.confirmedBtnView}>
-                <Image source={require('../assets/imgs/confirmed_btn.png')} />
+            <TouchableOpacity onPress={() => this.setState({ seletedConfirmed: !this.state.seletedConfirmed })}>
+              <View style={this.state.seletedConfirmed ? styles.selected_confirmedBtnView : styles.confirmedBtnView}>
+                <View style={styles.icon_WHO}></View>
                 <Text style={styles.confirmedText}>WHO Confirmed</Text>
               </View>
             </TouchableOpacity>
-            <TouchableOpacity>
-              <View style={styles.confirmedBtnView}>
-                <Image source={require('../assets/imgs/dead_btn.png')} />
+
+            <TouchableOpacity onPress={() => this.setState({ seletedDeaths: !this.state.seletedDeaths })}>
+              <View style={styles.confirmedBtnView} style={this.state.seletedDeaths ? styles.selected_confirmedBtnView : styles.confirmedBtnView}>
+                <View style={styles.icon_Deaths}></View>
                 <Text style={styles.confirmedText}>WHO Deaths</Text>
               </View>
             </TouchableOpacity>            
@@ -187,44 +251,44 @@ const myApiKey = 'AIzaSyB8nm4Avunu0rENuo2tpWgV8jKUKLFbESw';
         <MapView
           provider={PROVIDER_GOOGLE}
           style={styles.map}
-          //onRegionChangeComplete={this.onRegionChangeComplete}
           initialRegion={{
             latitude: this.state.currentLat,
             longitude: this.state.currentLng,
-            latitudeDelta: 25,
-            longitudeDelta: 25,
+            latitudeDelta: LATITUDE_DELTA,
+            longitudeDelta: LONGITUDE_DELTA,
           }}
-          region={{
-            latitude: this.state.currentLat,
-            longitude: this.state.currentLng,
-            latitudeDelta: 25,
-            longitudeDelta: 25,
-          }}
+
         >
-          {this.props.infoByCountry.loaded && this.props.infoByCountry.receiveInfo.map(marker => {
+          {this.props.infoByCountry.loaded && this.props.infoByCountry.receiveInfo.locations.map(marker => {
             return(
               <Marker
-                title="New York"
-                description={this.state.confirmedText + '\n' + this.state.recoveredText}
-                onPress={() => this.setState({ marker1: !this.state.marker1 })}
-                coordinate={{
-                  latitude: marker.lat,
-                  longitude: marker.long,
-                }}
-                // centerOffset={{ x: -18, y: -60 }}
-                // anchor={{ x: 0.69, y: 1 }}
-                //image={flagPinkImg}
+                title={marker.province + " " + marker.country}
+                description={"confirmed: " + marker.latest.confirmed + '\n' + "deaths: " + marker.latest.deaths+ '\n' + "recovered: " + marker.latest.recovered}
+                coordinate={marker.coordinates}
+                centerOffset={{ x: -18, y: -60 }}
+                anchor={{ x: 0.5, y: 0.5 }}
               >
-              {
-                
-                
-                marker.confirmed > 0 && 
-                  <Image source={require('../assets/imgs/confirm_pin.png')} style={{height: 30, width:30 }} />
+              {!this.state.seletedConfirmed && !this.state.seletedDeaths &&
+                <View>
+                  {marker.latest.confirmed > 0 &&
+                    this.renderAllMarker(marker.latest)
+                  }  
+                </View>
+              }
+              {this.state.seletedConfirmed && 
+                <View>
+                  {marker.latest.confirmed > 0 &&
+                    this.renderConfirmMarker(marker.latest)
+                  }  
+                </View>
               }  
-              {
-                marker.deaths > 0 && 
-                  <Image source={require('../assets/imgs/deaths_pin.png')} style={{height: 20, width:20, marginTop : -20 }} />
-              }             
+              {this.state.seletedDeaths && 
+                <View>
+                  {marker.latest.deaths > 0 &&
+                    this.renderDeathsMarker(marker.latest)
+                  }  
+                </View>
+              }                              
             </Marker>);
            })} 
         </MapView>}
@@ -243,9 +307,8 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
 
   return {
-      requestFetchConfirmedInfo: searchParam => dispatch(fetchConfirmedInfoByCountry(searchParam)),
-      requestGetLocation: searchParam => dispatch(getCurrentLocation(searchParam)),
-
+    requestFetchConfirmedInfo: searchParam => dispatch(fetchConfirmedInfoByCountry(searchParam)),
+    requestFetchFromFirebase: () => dispatch(fetchInfoFromFirebase()),
   }
 }
 
@@ -287,6 +350,17 @@ const styles = StyleSheet.create({
     // justifyContent : 'center',
     alignItems : 'center',
     marginLeft : 20
+
+  },
+  selected_confirmedBtnView : {
+    padding : 5,
+    width : width/3,
+    height : 30,
+    flexDirection : 'row',
+    backgroundColor : '#FF7C7C',   
+    alignItems : 'center',
+    marginLeft : 20,
+    borderRadius : 10
 
   },
   confirmedText : {
@@ -354,6 +428,124 @@ const styles = StyleSheet.create({
     marginRight: 12,
     paddingLeft: 20,
     paddingRight: 10
+  },
+  confirmMarkerView : {
+    width : 20,
+    height : 20,
+    borderRadius : 50,
+    borderWidth : 1,
+    borderColor : 'red',
+    backgroundColor : '#FF7C7C'
+  },
+  confirmMarkerSmallView : {
+    width : 40,
+    height : 40,
+    borderRadius : 50,
+    borderWidth : 1,
+    borderColor : 'red',
+    backgroundColor : '#FF7C7C'
+  },
+  confirmMarkerMediumView : {
+    width : 60,
+    height : 60,
+    borderRadius : 50,
+    borderWidth : 1,
+    borderColor : 'red',
+    backgroundColor : '#FF7C7C'
+  },  
+  confirmMarkerLargeView : {
+    width : 80,
+    height : 80,
+    borderRadius : 50,
+    borderWidth : 1,
+    borderColor : 'red',
+    backgroundColor : '#FF7C7C'
+  }, 
+  icon_WHO : {
+    width : 15,
+    height : 15,
+    borderRadius : 3,
+    borderWidth : 1,
+    borderColor : 'red',
+    backgroundColor : '#FF7C7C'    
+  },
+  deathsMarkerView : {
+    width : 15,
+    height : 15,
+    borderRadius : 50,
+    borderWidth : 1,
+    borderColor : 'black',
+    backgroundColor : '#212121',
+     marginTop : -15    
+  },
+  deathsMarkerSmallView : {
+    width : 30,
+    height : 30,
+    borderRadius : 50,
+    borderWidth : 1,
+    borderColor : 'black',
+    backgroundColor : '#212121',
+    marginTop : -25    
+  },
+  deathsMarkerMediumView : {
+    width : 50,
+    height :50,
+    borderRadius : 50,
+    borderWidth : 1,
+    borderColor : 'black',
+    backgroundColor : '#212121',
+    marginTop : -45    
+  },
+  deathsMarkerLargeView : {
+    width : 70,
+    height :70,
+    borderRadius : 50,
+    borderWidth : 1,
+    borderColor : 'black',
+    backgroundColor : '#212121',
+    marginTop : -65    
+  }, 
+  
+  deathsMarkerView1 : {
+    width : 15,
+    height : 15,
+    borderRadius : 50,
+    borderWidth : 1,
+    borderColor : 'black',
+    backgroundColor : '#212121',
+  },
+  deathsMarkerSmallView1 : {
+    width : 30,
+    height : 30,
+    borderRadius : 50,
+    borderWidth : 1,
+    borderColor : 'black',
+    backgroundColor : '#212121',
+  },
+  deathsMarkerMediumView1 : {
+    width : 50,
+    height :50,
+    borderRadius : 50,
+    borderWidth : 1,
+    borderColor : 'black',
+    backgroundColor : '#212121',
+  },
+  deathsMarkerLargeView1 : {
+    width : 70,
+    height :70,
+    borderRadius : 50,
+    borderWidth : 1,
+    borderColor : 'black',
+    backgroundColor : '#212121',
+  }, 
+
+  icon_Deaths : {
+    width : 15,
+    height : 15,
+    borderRadius : 3,
+    borderWidth : 1,
+    borderColor : 'black',
+    backgroundColor : '#212121'    
   },
 });
  export default connect(mapStateToProps, mapDispatchToProps)(Map);
